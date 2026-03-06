@@ -10,7 +10,6 @@ let handler = async (m, { conn, usedPrefix, __dirname, participants }) => {
     let mentionedJid = m.mentionedJid && m.mentionedJid[0] ? m.mentionedJid[0] : m.sender
     let user = global.db.data.users[m.sender] || {}
     let name = await conn.getName(m.sender)
-    //let premium = user.premium ? '✔️ Sí' : 'free'
     let totalreg = Object.keys(global.db.data.users).length
     let groupUserCount = m.isGroup ? participants.length : '-'
     let groupsCount = Object.values(conn.chats).filter(v => v.id.endsWith('@g.us')).length
@@ -27,6 +26,7 @@ let handler = async (m, { conn, usedPrefix, __dirname, participants }) => {
     let phone = PhoneNumber('+' + userIdNum)
     let pais = phone.getRegionCode() || 'Desconocido 🌐'
 
+    // *** CORREGIDO: SIN ERRORES, SIN DUPLICADOS, SIN STRINGS ROTOS ***
     let tags = {
       'info': '𝐈𝐍𝐅𝐎',
       'main': '𝐒𝐓𝐀𝐓𝐔𝐒',
@@ -37,8 +37,7 @@ let handler = async (m, { conn, usedPrefix, __dirname, participants }) => {
       'socket': '𝐒𝐎𝐂𝐊𝐄𝐓𝐒',
       'rg': '𝐏𝐄𝐑𝐅𝐈𝐋',
       'fun': '𝐅𝐔𝐍',
-      'rpg': '𝙀𝘾𝙊𝙉𝙊𝙈𝙄𝘼', 
-      'rg': '𝙍𝙂 𝙐𝙒𝙐, 
+      'rpg': '𝙀𝘾𝙊𝙉𝙊𝙈𝙄𝘼',
       'gacha': '𝐆𝐀𝐂𝐇𝐀',
       'game': '𝐆𝐀𝐌𝐄',
       'grupos': '𝐆𝐑𝐔𝐏𝐎',
@@ -49,7 +48,7 @@ let handler = async (m, { conn, usedPrefix, __dirname, participants }) => {
       'tools': '𝐔𝐓𝐈𝐋𝐒',
       'sticker': '𝐒𝐓𝐈𝐂𝐊𝐄𝐑𝐒',
       'owner': '𝐃𝐄𝐕𝐄𝐋𝐎𝐏𝐄𝐑',
-      'nsfw': '𝐍𝐒𝐅𝐖 (+18)',
+      'nsfw': '𝐍𝐒𝐅𝐖 (+18)'
     }
 
     let commands = Object.values(global.plugins)
@@ -127,7 +126,6 @@ await m.react('🫧')
 await conn.sendMessage(m.chat, { 
 text: infoUser + menuTexto,
 contextInfo: {
- //mentionedJid: [mentionedJid],
  isForwarded: true,
  forwardedNewsletterMessageInfo: {
    newsletterJid: channelRD.id,
@@ -145,39 +143,6 @@ contextInfo: {
    containsAutoReply: true,
    renderLargerThumbnail: true
  }}}, { quoted: fkontak })
-
-/*
-
-await m.react('🫧')
-await conn.sendMessage(
-  m.chat,
-  {
-    video: { url: 'https://raw.githubusercontent.com/AkiraDevX/uploads/main/uploads/1767306894083_992234.mp4' },
-    caption: infoUser + menuTexto,
-    gifPlayback: true,
-    gifAttribution: 0,
-    contextInfo: {
-      mentionedJid: [mentionedJid],
-      isForwarded: false,
-      forwardingScore: 999,
-      forwardedNewsletterMessageInfo: {
-        newsletterJid: channelRD.id,
-        serverMessageId: 100,
-        newsletterName: channelRD.name
-      },
-      externalAdReply: {
-        title: botname,
-        body: dev,
-        thumbnailUrl: "https://raw.githubusercontent.com/AkiraDevX/uploads/main/uploads/1767307141778_186098.jpeg",
-        mediaType: 1,
-        mediaUrl: null,
-        sourceUrl: redes,
-        renderLargerThumbnail: false
-      }
-    }
-  },
-  { quoted: fkontak }
-)*/
 
 } catch (e) {
    console.error(e)
@@ -213,4 +178,4 @@ function ucapan() {
     res = "🄱ᴜᴇɴᴀs ɴᴏᴄʜᴇs"
 
   return res
-}
+                               }
