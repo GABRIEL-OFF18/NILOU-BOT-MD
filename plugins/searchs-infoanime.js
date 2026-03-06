@@ -1,9 +1,10 @@
 import fetch from 'node-fetch'
 
 var handler = async (m, { conn, usedPrefix, command, text }) => {
-  if (!text) return conn.reply(m.chat, `🌌 *Discípulo de las Sombras* 🎄\nDebes entregar el nombre de algún anime o manga para invocar su información.`, m)
+  if (!text) return conn.reply(m.chat, `🌑 *Discípulo de las Sombras*\nDebes entregar el nombre de un anime o manga para revelar su información.`, m)
+
   try {
-    await m.react('🎭') // reacción teatral inicial
+    await m.react('🎭') 
     let res = await fetch('https://api.jikan.moe/v4/manga?q=' + text)
     if (!res.ok) {
       await m.react('✖️')
@@ -11,33 +12,66 @@ var handler = async (m, { conn, usedPrefix, command, text }) => {
     }
 
     let json = await res.json()
-    let { chapters, title_japanese, url, type, score, members, background, status, volumes, synopsis, favorites } = json.data[0]
-    let author = json.data[0].authors[0].name
+    let data = json.data[0]
 
-    let animeinfo = `🌌 *Catálogo de las Sombras – Edición Navideña* 🎅
+    let {
+      chapters,
+      title_japanese,
+      url,
+      type,
+      score,
+      members,
+      background,
+      status,
+      volumes,
+      synopsis,
+      favorites
+    } = data
+
+    let author = data.authors?.[0]?.name || 'No especificado'
+
+    // Traducción automática al español si viene en inglés
+    const traducir = async (txt) => {
+      if (!txt) return 'No especificado'
+      try {
+        let tr = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(txt)}&langpair=en|es`)
+        let trjson = await tr.json()
+        return trjson.responseData.translatedText || txt
+      } catch {
+        return txt
+      }
+    }
+
+    synopsis = await traducir(synopsis)
+    background = await traducir(background)
+
+    let animeinfo = `🌑 *Catálogo de las Sombras*
     
-❖ Título: ${title_japanese}
-❖ Capítulos: ${chapters}
-❖ Transmisión: ${type}
-❖ Estado: ${status}
-❖ Volúmenes: ${volumes}
-❖ Favoritos: ${favorites}
-❖ Puntaje: ${score}
-❖ Miembros: ${members}
-❖ Autor: ${author}
-❖ Fondo: ${background || 'No especificado'}
-❖ Sinopsis: ${synopsis}
-❖ Enlace: ${url}`
+❖ *Título:* ${title_japanese}
+❖ *Capítulos:* ${chapters}
+❖ *Tipo:* ${type}
+❖ *Estado:* ${status}
+❖ *Volúmenes:* ${volumes}
+❖ *Favoritos:* ${favorites}
+❖ *Puntaje:* ${score}
+❖ *Miembros:* ${members}
+❖ *Autor:* ${author}
+❖ *Contexto:* ${background}
+❖ *Sinopsis:* ${synopsis}
+❖ *Enlace:* ${url}
+
+🜁 *La información ha sido extraída desde los archivos ocultos del Reino de las Sombras.*`
 
     await conn.sendFile(
       m.chat,
-      json.data[0].images.jpg.image_url,
-      'shadow_anime.jpg',
+      data.images.jpg.image_url,
+      'shadow_manga.jpg',
       animeinfo,
       m
     )
 
     await m.react('✔️')
+
   } catch (error) {
     await m.react('✖️')
     await conn.reply(
