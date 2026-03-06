@@ -6,7 +6,11 @@ try {
 let text = args.join(' ') || m.quoted?.text
 if (!text) return conn.reply(m.chat, '《✧》 Escribe o responde un texto para traducirlo.', m)
 
-const Shadow_url = await (await fetch("https://adofiles.i11.eu/dl/pna6.jpg")).buffer()
+const iconUrl = "https://i.postimg.cc/rFfVL8Ps/image.jpg"
+const bigUrl = "https://adofiles.i11.eu/dl/pna6.jpg"
+
+const iconBuffer = await (await fetch(iconUrl)).buffer()
+const bigBuffer = await (await fetch(bigUrl)).buffer()
 
 const fkontak = {
   key: {
@@ -19,7 +23,7 @@ const fkontak = {
       product: {
         productImage: {
           mimetype: "image/jpeg",
-          jpegThumbnail: Shadow_url
+          jpegThumbnail: iconBuffer
         },
         title: `⌗ֶㅤ𝐓𝐫𝐚𝐝𝐮𝐜𝐭𝐨𝐫 𝐝𝐞 𝐥𝐚 𝐒𝐨𝐦𝐛𝐫𝐚 ⚜`,
         description: "« Las lenguas del mundo se inclinan ante la Sombra. »",
@@ -56,7 +60,16 @@ await conn.sendMessage(
     text: '✦ Selecciona el idioma al que deseas traducir:',
     footer: 'Sʜᴀᴅᴏᴡ Gᴀʀᴅᴇɴ ⚜',
     buttons,
-    headerType: 1
+    headerType: 1,
+    contextInfo: {
+      externalAdReply: {
+        title: "Shadow Garden ┊ Traductor Arcano",
+        body: "El conocimiento se somete a la Sombra.",
+        mediaType: 1,
+        thumbnail: bigBuffer,
+        renderLargerThumbnail: true
+      }
+    }
   },
   { quoted: fkontak }
 )
