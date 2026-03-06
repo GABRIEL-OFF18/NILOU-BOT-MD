@@ -80,15 +80,15 @@ ${comandos}
 > . ݁  🌑՞ *ʙɪᴇɴᴠᴇɴɪᴅᴏ ᴀ ʟᴀ ꜱᴏᴍʙʀᴀ,* ${name}.
 >    ʏᴀ ᴇꜱᴛᴀʙᴀ ᴇꜱᴄᴜᴄʀᴀɴᴅᴏ ᴛᴜꜱ ᴘᴀꜱᴏꜱ...
 
-> ﹙⚜︎﹚੭੭ ─ \`ɪ ɴ ғ ᴏ - ꜱʜᴀᴅᴏᴡ ʙᴏᴛ\`  ﾟ⬭𑇛
+> ﹙⚜︎﹚੭੭ ─ \`ɪ ɴ ғ ᴏ - ꜱʜᴀᴅᴏᴡ ʙᴏᴛ\`
 > ര ׄ 𓏸𓈒 ׅ *ɴᴏᴍʙʀᴇ ᴄʟᴀᴠᴇ ›* ${conn.user?.name || 'Shadow Unit'}
 > ര ׄ 𓏸𓈒 ׅ *ᴄʟᴀꜱɪꜰɪᴄᴀᴄɪᴏɴ ›* ${(conn.user.jid == global.conn.user.jid ? '𝐍𝐮́𝐜𝐥𝐞𝐨 𝐏𝐫𝐢𝐧𝐜𝐢𝐩𝐚𝐥' : '𝐔𝐧𝐢𝐝𝐚𝐝 𝐒𝐮𝐛𝐨𝐫𝐝𝐢𝐧𝐚𝐝𝐚')}
-> ര ׄ 𓏸𓈒 ׅ *ᴄᴏᴍᴀɴᴅᴏꜱ ᴅɪꜱᴘᴏɴɪʙʟᴇꜱ ›* ${totalCommands}
+> ര ׄ 𓏸𓈒 ׅ *ᴄᴏᴍᴀɴᴅᴏꜱ ›* ${totalCommands}
 > ര ׄ 𓏸𓈒 ׅ *ᴛɪᴇᴍᴘᴏ ᴇɴ ʟᴀ ꜱᴏᴍʙʀᴀ ›* ${uptime}
-> ര ׄ 𓏸𓈒 ׅ *ᴅᴏᴍɪɴɪᴏ ᴅᴇ ᴏʀɪɢᴇɴ ›* ${pais}
-> ര ׄ 𓏸𓈒 ׅ *ᴀʟᴍᴀꜱ ʀᴇɢɪꜱᴛʀᴀᴅᴀꜱ ›* ${totalreg}
-> ര ׄ 𓏸𓈒 ׅ *ᴄᴇʟᴅᴀꜱ ᴀᴄᴛɪᴠᴀꜱ ›* ${groupsCount}
-> ര ׄ 𓏸𓈒 ׅ *ʀᴇɢɪꜱᴛʀᴏ ᴛᴇᴍᴘᴏʀᴀʟ ›* ${date}
+> ര ׄ 𓏸𓈒 ׅ *ᴅᴏᴍɪɴɪᴏ ›* ${pais}
+> ര ׄ 𓏸𓈒 ׅ *ᴀʟᴍᴀꜱ ›* ${totalreg}
+> ര ׄ 𓏸𓈒 ׅ *ᴄᴇʟᴅᴀꜱ ›* ${groupsCount}
+> ര ׄ 𓏸𓈒 ׅ *ᴛɪᴇᴍᴘᴏ ›* ${date}
 
 ${readMore}
   乂 *ᴘʀᴏᴛᴏᴄᴏʟᴏ ᴅᴇ ᴄᴏᴍᴀɴᴅᴏꜱ ᴅᴇ ʟᴀ ꜱᴏᴍʙʀᴀ* 乂\n`.trim()
@@ -117,7 +117,7 @@ ${readMore}
           title: `⌗ֶㅤ𝐌𝐞𝐧𝐮 𝐝𝐞 𝐥𝐚 𝐒𝐨𝐦𝐛𝐫𝐚 - ${botname} 𝅄⚜︎`,
           description: "« Soy quien actúa en las sombras, fingiendo ser un simple extra. »",
           currencyCode: "USD",
-          priceAmount1000: 0000,
+          priceAmount1000: 0,
           retailerId: "menu"
         },
         businessOwnerJid: "584242773183@s.whatsapp.net"
@@ -181,4 +181,4 @@ function ucapan() {
     res = "🄱ᴜᴇɴᴀꜱ ɴᴏᴄʜᴇꜱ, ʟᴀ ᴏʙꜱᴄᴜʀɪᴅᴀᴅ ᴛᴇ ᴄᴜʙʀᴇ"
 
   return res
-      }
+                         }
