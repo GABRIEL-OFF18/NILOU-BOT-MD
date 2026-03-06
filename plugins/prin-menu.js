@@ -1,162 +1,216 @@
-import moment from "moment-timezone";
-import fs from "fs";
-import path from "path";
-import fetch from "node-fetch";
-const { prepareWAMessageMedia, generateWAMessageFromContent } = (await import("@whiskeysockets/baileys")).default;
+import fetch from 'node-fetch'
+import { xpRange } from '../lib/levelling.js'
+import fs from 'fs'
+import PhoneNumber from 'awesome-phonenumber'
+import moment from 'moment-timezone'
 
-let handler = async (m, { conn, usedPrefix }) => {
+let handler = async (m, { conn, usedPrefix, __dirname, participants }) => {
   try {
 
-    let menu = {};
-    for (let plugin of Object.values(global.plugins)) {
-      if (!plugin || !plugin.help) continue;
-      let taglist = plugin.tags || [];
-      for (let tag of taglist) {
-        if (!menu[tag]) menu[tag] = [];
-        menu[tag].push(plugin);
-      }
+    let mentionedJid = m.mentionedJid && m.mentionedJid[0] ? m.mentionedJid[0] : m.sender
+    let user = global.db.data.users[m.sender] || {}
+    let name = await conn.getName(m.sender)
+    //let premium = user.premium ? '✔️ Sí' : 'free'
+    let totalreg = Object.keys(global.db.data.users).length
+    let groupUserCount = m.isGroup ? participants.length : '-'
+    let groupsCount = Object.values(conn.chats).filter(v => v.id.endsWith('@g.us')).length
+    let uptime = clockString(process.uptime() * 1000)
+    let fecha = new Date(Date.now())
+    let locale = 'es-PE'
+    let dia = fecha.toLocaleDateString(locale, { weekday: 'long' })
+    let fechaTxt = fecha.toLocaleDateString(locale, { day: 'numeric', month: 'long', year: 'numeric' })
+    let hora = fecha.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })
+    let totalCommands = Object.keys(global.plugins).length
+    let readMore = String.fromCharCode(8206).repeat(4001)
+
+    let userIdNum = m.sender.split('@')[0]
+    let phone = PhoneNumber('+' + userIdNum)
+    let pais = phone.getRegionCode() || 'Desconocido 🌐'
+
+    let tags = {
+      'info': '𝐈𝐍𝐅𝐎',
+      'main': '𝐒𝐓𝐀𝐓𝐔𝐒',
+      'anime': '𝐀𝐍𝐈𝐌𝐄',
+      'menu': '𝐌𝐄𝐍𝐔𝐒̌',
+      'search': '𝐁𝐔𝐒𝐐𝐔𝐄𝐃𝐀𝐒',
+      'descargas': '𝐃𝐎𝐖𝐍𝐋𝐎𝐀𝐃𝐒',
+      'socket': '𝐒𝐎𝐂𝐊𝐄𝐓𝐒',
+      'rg': '𝐏𝐄𝐑𝐅𝐈𝐋',
+      'fun': '𝐅𝐔𝐍',
+      'rpg': '𝙀𝘾𝙊𝙉𝙊𝙈𝙄𝘼', 
+      'rg': '𝙍𝙂 𝙐𝙒𝙐, 
+      'gacha': '𝐆𝐀𝐂𝐇𝐀',
+      'game': '𝐆𝐀𝐌𝐄',
+      'grupos': '𝐆𝐑𝐔𝐏𝐎',
+      'nable': '𝐎𝐍/𝐎𝐅𝐅',
+      'ia': '𝐈𝐀',
+      'stalk': '𝐒𝐓𝐀𝐋𝐊',
+      'maker': '𝐄𝐏𝐇𝐎𝐓𝐎',
+      'tools': '𝐔𝐓𝐈𝐋𝐒',
+      'sticker': '𝐒𝐓𝐈𝐂𝐊𝐄𝐑𝐒',
+      'owner': '𝐃𝐄𝐕𝐄𝐋𝐎𝐏𝐄𝐑',
+      'nsfw': '𝐍𝐒𝐅𝐖 (+18)',
     }
 
-    let uptimeSec = process.uptime();
-    let hours = Math.floor(uptimeSec / 3600);
-    let minutes = Math.floor((uptimeSec % 3600) / 60);
-    let seconds = Math.floor(uptimeSec % 60);
-    let uptimeStr = `${hours}h ${minutes}m ${seconds}s`;
-
-    let botNameToShow = global.botname || "SHADOW";
-    let videoUrl = "https://adofiles.i11.eu/dl/85ov.mp4";
-
-    const now = moment().tz("America/Tegucigalpa");
-    const timeStr = now.format("HH:mm:ss");
-
-    const tagUser = '@' + m.sender.split('@')[0];
-    const line = "━━━━━━━━━━━━━━━━━━━━━━";
-
-    let txt = `
-╔══════════════════════╗
-        𝐒𝐇𝐀𝐃𝐎𝐖 𝐆𝐀𝐑𝐃𝐄𝐍
-╚══════════════════════╝
-
-Bienvenido, ${tagUser}
-Has ingresado al dominio oculto.
-
-${line}
-
-▸ SISTEMA
-• Identidad: ${botNameToShow}
-• Tiempo activo: ${uptimeStr}
-• Hora actual: ${timeStr}
-
-${line}
-
-▸ MÓDULOS
-`;
-
-    for (let tag in menu) {
-        txt += `\n◆ ${tag.toUpperCase()}\n`;
-        let commands = menu[tag].map(plugin => {
-            const cmdList = Array.isArray(plugin.help) ? plugin.help : [plugin.help];
-            return cmdList.map(cmd => `   ◦ ${usedPrefix}${cmd}`).join('\n');
-        }).join('\n');
-        txt += `${commands}\n`;
-    }
-
-    txt += `
-${line}
-"I AM ATOMIC."
-`;
-
-    await conn.sendMessage(m.chat, { react: { text: '🌑', key: m.key } });
-
-    let mediaMessage = await prepareWAMessageMedia(
-      { video: { url: videoUrl }, gifPlayback: true },
-      { upload: conn.waUploadToServer }
-    );
-
-    const msg = generateWAMessageFromContent(m.chat, {
-      viewOnceMessage: {
-        message: {
-          interactiveMessage: {
-            header: {
-              hasMediaAttachment: true,
-              videoMessage: mediaMessage.videoMessage
-            },
-            body: { text: txt },
-            footer: { text: "SHADOW-BOT-MD" },
-            nativeFlowMessage: {
-              buttons: [
-                {
-                  name: "single_select",
-                  buttonParamsJson: JSON.stringify({
-                    title: "Shadow Interface",
-                    sections: [
-                      {
-                        title: "Shadow Garden",
-                        highlight_label: "ELITE",
-                        rows: [
-                          { title: "Menú Completo", description: "Ver todos los comandos", id: `${usedPrefix}allmenu` },
-                          { title: "Estado del Sistema", description: "Velocidad y rendimiento", id: `${usedPrefix}ping` },
-                          { title: "Fundador", description: "Contacto del creador", id: `${usedPrefix}owner` }
-                        ]
-                      }
-                    ]
-                  })
-                },
-                {
-                  name: "cta_copy",
-                  buttonParamsJson: JSON.stringify({
-                    display_text: "Copiar Identidad",
-                    id: "shadow_core",
-                    copy_code: "I AM ATOMIC"
-                  })
-                },
-                {
-                  name: "cta_url",
-                  buttonParamsJson: JSON.stringify({
-                    display_text: "Canal Oficial",
-                    url: "https://whatsapp.com/channel/0029VbArz9fAO7RGy2915k3O"
-                  })
-                }
-              ],
-              messageParamsJson: JSON.stringify({
-                limited_time_offer: {
-                  text: "Shadow Menu List",
-                  url: "https://whatsapp.com/channel/0029VbArz9fAO7RGy2915k3O",
-                  copy_code: "SHADOW-BOT-MD",
-                  expiration_time: 1754613436864329
-                },
-                bottom_sheet: {
-                  in_thread_buttons_limit: 2,
-                  divider_indices: [1, 2],
-                  list_title: "Shadow Interface",
-                  button_title: "Open Shadow Menu"
-                },
-                tap_target_configuration: {
-                  title: "▸ SHADOW ◂",
-                  description: "Menú Principal",
-                  canonical_url: "https://whatsapp.com/channel/0029VbArz9fAO7RGy2915k3O",
-                  domain: "https://whatsapp.com",
-                  button_index: 0
-                }
-              })
-            },
-            contextInfo: {
-              mentionedJid: [m.sender],
-              isForwarded: true,
-              forwardingScore: 999999
-            }
-          }
+    let commands = Object.values(global.plugins)
+      .filter(v => v.help && v.tags)
+      .map(v => {
+        return {
+          help: Array.isArray(v.help) ? v.help : [v.help],
+          tags: Array.isArray(v.tags) ? v.tags : [v.tags]
         }
+      })
+
+    let menuTexto = ''
+    for (let tag in tags) {
+      let comandos = commands
+        .filter(cmd => cmd.tags.includes(tag))
+        .map(cmd => cmd.help.map(e => `*│ׄꤥㅤׅ*  ${usedPrefix}${e}`).join('\n'))
+        .join('\n')
+      if (comandos) {
+        menuTexto += `\n*╭──･ ̸̷∵* \`${tags[tag]}\`  *݁ 🍃՞*
+${comandos}
+*╰─────────────֙╯*\n`
       }
-    }, { quoted: m });
+    }
 
-    await conn.relayMessage(m.chat, msg.message, {});
+    let date = `${dia}, ${fechaTxt}, ${hora}`
+    let infoUser = `
+> . ݁  🌱՞ *¡ʜᴏʟᴀ!* ${ucapan()} ${name}, ᴀǫᴜɪ ᴛɪᴇɴᴇs ʟᴀ ʟɪsᴛᴀ ᴅᴇ ᴄᴏᴍᴀɴᴅᴏs. 𖠗𖠗
 
-  } catch (e) {
-    console.error(e);
-    conn.reply(m.chat, "El núcleo de Shadow ha fallado...", m);
+> ﹙🪷̸ ﹚੭੭ ─ \`ɪ ɴ ғ ᴏ - ʙ ᴏ ᴛ\`  ﾟ⬭𑇛
+> ര ׄ 𓏸𓈒 ׅ *ʙᴏᴛ ɴᴀᴍᴇ ›* ${conn.user?.name || 'Bot'}
+> ര ׄ 𓏸𓈒 ׅ *ᴛɪᴘᴏ ›* ${(conn.user.jid == global.conn.user.jid ? 'Principal' : 'Sub-Bot')}
+> ര ׄ 𓏸𓈒 ׅ *ᴄᴏᴍᴀɴᴅᴏs ›* ${totalCommands}
+> ര ׄ 𓏸𓈒 ׅ *ᴀᴄᴛɪᴠᴏ ›* ${uptime}
+> ര ׄ 𓏸𓈒 ׅ *ᴘᴀɪs ›* ${pais}
+> ര ׄ 𓏸𓈒 ׅ *ᴜsᴜᴀʀɪᴏs ʀᴇɢ ›* ${totalreg}
+> ര ׄ 𓏸𓈒 ׅ *ɢʀᴜᴘᴏs ›* ${groupsCount}
+> ര ׄ 𓏸𓈒 ׅ *ᴅᴀᴛᴇ/ᴛɪᴍᴇ ›* ${date}
+
+${readMore}
+  乂 *ʟɪsᴛᴀ ᴅᴇ ᴄᴏᴍᴀɴᴅᴏs* 乂\n`.trim()
+
+
+   const icon = [
+     'https://raw.githubusercontent.com/AkiraDevX/uploads/main/uploads/1766860960881_784501.jpeg',
+     'https://raw.githubusercontent.com/AkiraDevX/uploads/main/uploads/1766860957838_177118.jpeg'
+   ]
+   let icons = icon[Math.floor(Math.random() * icon.length)]
+
+  const Shadow_url = await (await fetch(icons)).buffer()
+  const fkontak = {
+    key: {
+      fromMe: false,
+      participant: "0@s.whatsapp.net",
+      remoteJid: "status@broadcast"
+    },
+    message: {
+      productMessage: {
+        product: {
+          productImage: {
+            mimetype: "image/jpeg",
+            jpegThumbnail: Shadow_url
+          },
+          title: `⌗ֶㅤ𝐌𝐞𝐧𝐮 - ${botname} 𝅄🥢`,
+          description: "",
+          currencyCode: "USD",
+          priceAmount1000: 10000,
+          retailerId: "menu"
+        },
+        businessOwnerJid: "51919199620@s.whatsapp.net"
+      }
+    }
   }
-};
 
-handler.command = ['menu', 'help', 'allmenu'];
-export default handler;
+await m.react('🫧')
+await conn.sendMessage(m.chat, { 
+text: infoUser + menuTexto,
+contextInfo: {
+ //mentionedJid: [mentionedJid],
+ isForwarded: true,
+ forwardedNewsletterMessageInfo: {
+   newsletterJid: channelRD.id,
+   serverMessageId: '',
+   newsletterName: channelRD.name
+ },
+ externalAdReply: {
+   title: botname,
+   body: dev,
+   mediaType: 1,
+   mediaUrl: null,
+   sourceUrl: null,
+   thumbnail: await (await fetch(banner)).buffer(),
+   showAdAttribution: false,
+   containsAutoReply: true,
+   renderLargerThumbnail: true
+ }}}, { quoted: fkontak })
+
+/*
+
+await m.react('🫧')
+await conn.sendMessage(
+  m.chat,
+  {
+    video: { url: 'https://raw.githubusercontent.com/AkiraDevX/uploads/main/uploads/1767306894083_992234.mp4' },
+    caption: infoUser + menuTexto,
+    gifPlayback: true,
+    gifAttribution: 0,
+    contextInfo: {
+      mentionedJid: [mentionedJid],
+      isForwarded: false,
+      forwardingScore: 999,
+      forwardedNewsletterMessageInfo: {
+        newsletterJid: channelRD.id,
+        serverMessageId: 100,
+        newsletterName: channelRD.name
+      },
+      externalAdReply: {
+        title: botname,
+        body: dev,
+        thumbnailUrl: "https://raw.githubusercontent.com/AkiraDevX/uploads/main/uploads/1767307141778_186098.jpeg",
+        mediaType: 1,
+        mediaUrl: null,
+        sourceUrl: redes,
+        renderLargerThumbnail: false
+      }
+    }
+  },
+  { quoted: fkontak }
+)*/
+
+} catch (e) {
+   console.error(e)
+   await conn.sendMessage(m.chat, { 
+     text: `✘ Error al enviar el menú: ${e.message}`,
+     mentionedJid: [mentionedJid]
+   })
+ }
+}
+
+handler.help = ['menu']
+handler.tags = ['main']
+handler.command = ['menu','help','menú', 'allmenu']
+handler.register = true
+export default handler
+
+function clockString(ms) {
+  const h = isNaN(ms) ? '--' : Math.floor(ms / 3600000)
+  const m = isNaN(ms) ? '--' : Math.floor(ms / 60000) % 60
+  const s = isNaN(ms) ? '--' : Math.floor(ms / 1000) % 60
+  return [h, m, s].map(v => v.toString().padStart(2, '0')).join(':')
+}
+
+function ucapan() {
+  const time = moment.tz('America/Lima').format('HH')
+  let res = "🄱ᴜᴇɴᴀs ɴᴏᴄʜᴇs"
+
+  if (time >= 5 && time < 12)
+    res = "🄱ᴜᴇɴᴏs ᴅɪᴀs"
+  else if (time >= 12 && time < 18)
+    res = "🄱ᴜᴇɴᴀs ᴛᴀʀᴅᴇs"
+  else if (time >= 18)
+    res = "🄱ᴜᴇɴᴀs ɴᴏᴄʜᴇs"
+
+  return res
+}
