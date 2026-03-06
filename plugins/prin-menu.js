@@ -4,6 +4,12 @@ import fs from 'fs'
 import PhoneNumber from 'awesome-phonenumber'
 import moment from 'moment-timezone'
 
+// VARIABLES FALTANTES (AGREGADAS)
+const botname = global.botname || "ShadowBot"
+const dev = global.dev || "AkiraDev"
+const banner = global.banner || "https://raw.githubusercontent.com/AkiraDevX/uploads/main/uploads/1767307141778_186098.jpeg"
+const channelRD = global.channelRD || { id: "0@newsletter", name: "Shadow Channel" }
+
 let handler = async (m, { conn, usedPrefix, __dirname, participants }) => {
   try {
 
@@ -26,7 +32,6 @@ let handler = async (m, { conn, usedPrefix, __dirname, participants }) => {
     let phone = PhoneNumber('+' + userIdNum)
     let pais = phone.getRegionCode() || 'Desconocido 🌐'
 
-    // *** CORREGIDO: SIN ERRORES, SIN DUPLICADOS, SIN STRINGS ROTOS ***
     let tags = {
       'info': '𝐈𝐍𝐅𝐎',
       'main': '𝐒𝐓𝐀𝐓𝐔𝐒',
@@ -53,12 +58,10 @@ let handler = async (m, { conn, usedPrefix, __dirname, participants }) => {
 
     let commands = Object.values(global.plugins)
       .filter(v => v.help && v.tags)
-      .map(v => {
-        return {
-          help: Array.isArray(v.help) ? v.help : [v.help],
-          tags: Array.isArray(v.tags) ? v.tags : [v.tags]
-        }
-      })
+      .map(v => ({
+        help: Array.isArray(v.help) ? v.help : [v.help],
+        tags: Array.isArray(v.tags) ? v.tags : [v.tags]
+      }))
 
     let menuTexto = ''
     for (let tag in tags) {
@@ -178,4 +181,4 @@ function ucapan() {
     res = "🄱ᴜᴇɴᴀs ɴᴏᴄʜᴇs"
 
   return res
-                               }
+      }
