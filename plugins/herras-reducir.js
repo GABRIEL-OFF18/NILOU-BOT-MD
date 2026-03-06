@@ -5,7 +5,6 @@ import * as baileys from '@whiskeysockets/baileys'
 
 const { generateWAMessageFromContent, proto, prepareWAMessageMedia } = baileys
 
-// TU API KEY REAL
 const IMGBB_KEY = '60b7b57c73586b5d915df1c3c378a458'
 
 let handler = async (m, { conn, text, usedPrefix }) => {
@@ -32,12 +31,10 @@ let handler = async (m, { conn, text, usedPrefix }) => {
   }
 
   try {
-    // REDIMENSIONAR
     let image = await Jimp.read(media)
     image.resize(width, height)
     let buffer = await image.getBufferAsync(Jimp.MIME_JPEG)
 
-    // SUBIR A IMGBB
     let formData = new FormData()
     formData.append('image', buffer.toString('base64'))
 
@@ -53,7 +50,6 @@ let handler = async (m, { conn, text, usedPrefix }) => {
 
     let uploadedUrl = uploadRes.data.data.url
 
-    // PREPARAR MEDIA PARA WHATSAPP
     let mediaMsg = await prepareWAMessageMedia(
       { image: buffer },
       { upload: conn.waUploadToServer }
