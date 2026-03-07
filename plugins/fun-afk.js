@@ -1,37 +1,38 @@
-import fetch from 'node-fetch'
-
 export async function before(m, { conn }) {
-  const primaryBot = global.db.data.chats[m.chat].primaryBot
+  const chat = global.db.data.chats[m.chat] || {}
+  const primaryBot = chat.primaryBot
   if (primaryBot && conn.user.jid !== primaryBot) throw !1
 
+  global.db.data.users[m.sender] = global.db.data.users[m.sender] || {}
   const user = global.db.data.users[m.sender]
-  user.afk = user.afk || -1
-  user.afkReason = user.afkReason || ''
 
-  const thumb = await (await fetch("https://i.postimg.cc/rFfVL8Ps/image.jpg")).buffer()
+  user.afk = typeof user.afk === 'number' ? user.afk : -1
+  user.afkReason = typeof user.afkReason === 'string' ? user.afkReason : ''
+
+  const thumb = await (await fetch('https://i.postimg.cc/rFfVL8Ps/image.jpg')).buffer()
 
   const shadow_xyz = {
     key: {
-      remoteJid: "status@broadcast",
+      remoteJid: 'status@broadcast',
       fromMe: false,
-      id: "ShadowCatalogAFK",
-      participant: "0@s.whatsapp.net"
+      id: 'ShadowCatalogAFK',
+      participant: '0@s.whatsapp.net'
     },
     message: {
       productMessage: {
         product: {
           productImage: {
-            mimetype: "image/jpeg",
+            mimetype: 'image/jpeg',
             jpegThumbnail: thumb
           },
-          title: "WhatsApp Business • Estado",
-          description: "Shadow team",
-          currencyCode: "USD",
-          priceAmount1000: 0, 
-          retailerId: "ShadowCore",
+          title: 'WhatsApp Business • Estado',
+          description: 'Shadow team',
+          currencyCode: 'USD',
+          priceAmount1000: 0,
+          retailerId: 'ShadowCore',
           productImageCount: 1
         },
-        businessOwnerJid: "584242773183@s.whatsapp.net"
+        businessOwnerJid: '584242773183@s.whatsapp.net'
       }
     }
   }
@@ -68,12 +69,20 @@ export async function before(m, { conn }) {
     user.afkReason = ''
   }
 
-  const quoted = m.quoted ? await m.quoted.sender : null
-  const jids = [...new Set([...(m.mentionedJid || []), ...(quoted ? [quoted] : [])])]
+  const quoted = m.quoted?.sender || null
+  const mentionedJid = Array.isArray(m.mentionedJid)
+    ? m.mentionedJid
+    : Array.isArray(m.msg?.contextInfo?.mentionedJid)
+      ? m.msg.contextInfo.mentionedJid
+      : []
+
+  const jids = [...new Set([...mentionedJid, ...(quoted ? [quoted] : [])])]
 
   for (const jid of jids) {
+    global.db.data.users[jid] = global.db.data.users[jid] || {}
     const target = global.db.data.users[jid]
-    if (!target || typeof target.afk !== 'number' || target.afk < 0) continue
+
+    if (typeof target.afk !== 'number' || target.afk < 0) continue
 
     const ms = Date.now() - target.afk
     const tiempo = formatTiempo(ms)
